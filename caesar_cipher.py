@@ -1,49 +1,39 @@
 import client
+import json
+import hashlib
 from caesarcipher import CaesarCipher
 
-cifrado = client.data["cifrado"]
-print(cifrado)
+# Resposta da requisição da API
+answer = client.data
 
-decifrando = CaesarCipher(cifrado, offset=10)
-print('Decifrado', decifrando.decoded)
+# Metodo que cria o arquivo json
+def escrever_json(lista):
+    with open('answer.json', 'w') as f:
+        json.dump(lista, f)
 
-# option=int(input('Digite 1 para encriptar ou 2 para decifrar'))
-# if(option==1):
-#     string=cifrado
-#     key=int(input("Numero de Casas: \t"))
-#     encrypt_str=""
-#     for i in string:
-#         if(i.isupper()==True):
-#             encrypt_str=encrypt_str+chr((((ord(i)+key)%65)%26)+65)
-#         elif(i.islower()==True):
-#             encrypt_str=encrypt_str+chr((((ord(i)+key)%97)%26)+97)
-#         elif(i.isdigit()==True):
-#             encrypt_str=encrypt_str+chr((((ord(i)+key)%48)%26)+48)
-#         else:
-#             encrypt_str=encrypt_str+i
-#     print(encrypt_str)
-# elif(option==2):
-#     select=input()
-# string=cifrado
-# key=int(input("Numero de Casas: \t"))
-# decrypt_str=""
-# if(key>0):
-#     for i in string:
-#         if(i.isupper()==True):                        
-#             if(ord(i)-key<65):
-#                 decrypt_str=decrypt_str+chr((((26+ord(i)-key)%65)%26)+65)
-#             else:
-#                 decrypt_str=decrypt_str+chr((((ord(i)-key)%65)%26)+65)
-#         elif(i.islower()==True):
-#             if(ord(i)-key<97):
-#                 decrypt_str=decrypt_str+chr((((26+ord(i)-key)%97)%26)+97)
-#             else:
-#                 decrypt_str=decrypt_str+chr((((ord(i)-key)%97)%26)+97)
-#         elif(i.isdigit()==True):
-#             if(ord(i)-key<48):
-#                 decrypt_str=decrypt_str+chr((((10+ord(i)-key)%48)%26)+48)
-#             else:
-#                 decrypt_str=decrypt_str+chr((((ord(i)-key)%48)%26)+48)
-#         else:
-#             decrypt_str=decrypt_str+i
-#     print(decrypt_str)
+# Metodo que carrega os dados do arquivo json
+def carregar_json(arquivo):
+    with open('answer.json', 'r') as f:
+        return json.load(f)
+
+# Processo de decifrar mensagem
+des = CaesarCipher(client.data["cifrado"] , offset=10)
+decifrado = des.decoded
+
+# Processo para criar resumo
+h = hashlib.sha1()
+h.update(decifrado.encode('utf-8'))
+resumo = h.hexdigest()
+
+# Atualizando as key vazias do json da requisição
+editado = {
+    'decifrado': decifrado,
+    'resumo_criptografico': resumo
+}
+answer.update(editado)
+
+# Criando ou atualizando o json
+escrever_json(answer)
+carregar_json(answer)
+
+
